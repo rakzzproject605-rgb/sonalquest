@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SonalQuest — Lobby</title>
+<style>
+:root{--bg:#0b1020;--panel:#141d33;--panel2:#1b2945;--ink:#f4f7ff;--muted:#aab7d0;--blue:#6ea8ff;--cyan:#65e0d1;--red:#ff5364;--line:#2b3a59}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top,#17264a,#0b1020 55%);color:var(--ink);font:16px/1.5 system-ui,Arial,sans-serif}button,input{font:inherit}button{cursor:pointer;border:0;border-radius:12px;padding:12px 17px;font-weight:750;background:var(--blue);color:#081326}button:disabled{opacity:.4;cursor:not-allowed}.secondary{background:#273653;color:var(--ink);border:1px solid #3a4d70}.danger{background:var(--red);color:#21070a}.wrap{max-width:1000px;margin:auto;padding:24px}.hidden{display:none!important}.brand{font-size:14px;letter-spacing:.16em;color:var(--cyan);font-weight:900}.hero{font-size:clamp(30px,6vw,50px);line-height:1.05;margin:10px 0}.muted{color:var(--muted)}.panel{background:rgba(20,29,51,.94);border:1px solid var(--line);border-radius:22px;padding:24px;box-shadow:0 16px 40px #0003}.login{max-width:460px;margin:9vh auto}.field{display:grid;gap:7px;margin:15px 0}.field input{background:#0c1428;border:1px solid #334564;border-radius:10px;padding:13px;color:white}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px}.subject{background:linear-gradient(145deg,#1c2c4c,#121b30);border:1px solid #304363;border-radius:18px;padding:19px;min-height:150px;display:flex;flex-direction:column;justify-content:space-between}.subject h3{font-size:21px;margin:8px 0}.tag{font-size:12px;color:var(--cyan);font-weight:800;letter-spacing:.08em}.top{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:20px}.progress{height:8px;background:#263552;border-radius:20px;overflow:hidden;margin:12px 0 22px}.progress span{display:block;height:100%;background:linear-gradient(90deg,var(--blue),var(--cyan));width:0}.choices{display:grid;gap:10px;margin:20px 0}.choice{display:flex;gap:12px;align-items:center;text-align:left;background:#0e172b;border:1px solid #314362;color:var(--ink);padding:14px;border-radius:13px}.choice.selected{border-color:var(--cyan);background:#16323b}.letter{border:1px solid #60708e;border-radius:8px;padding:2px 9px}.note{padding:12px 14px;border-radius:12px;background:#101a2e;color:var(--muted)}.score{font-size:52px;font-weight:900;color:var(--cyan)}table{width:100%;border-collapse:collapse}td,th{text-align:left;padding:10px;border-bottom:1px solid var(--line)}.rank{margin-top:20px}.small{font-size:13px}.modal{position:fixed;inset:0;background:#030713eF;display:grid;place-items:center;padding:20px;z-index:9}.modalbox{max-width:600px;width:100%;padding:32px;border:2px solid var(--red);border-radius:24px;background:#1b1422;text-align:center;box-shadow:0 0 60px #ff334455}.alarmword{font-size:clamp(28px,7vw,48px);font-weight:1000;color:#ff6373;line-height:1.05;margin:14px 0}.actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:24px}.footer{margin:28px 0 10px;text-align:center;color:#7f8ca7;font-size:12px}
+</style></head>
+<body>
+<div id="app" class="wrap">
+  <section id="login" class="panel login">
+    <div class="brand">SONALQUEST • 2026</div><h1 class="hero">Belajar. Jawab.<br>Naik peringkat.</h1>
+    <p class="muted">Masuk untuk membuka lobby pelajaran dan mengerjakan 45 soal per mata pelajaran.</p>
+    <form id="loginForm"><label class="field">Nama pengguna<input id="username" required maxlength="24" placeholder="Contoh: Pelajar123"></label><label class="field">Kata sandi<input id="password" type="password" required minlength="4" placeholder="Minimal 4 karakter"></label><button type="submit" style="width:100%">Masuk ke lobby →</button></form>
+    <p class="small muted">Demo ini menyimpan progres di perangkat/browser ini. Login belum memakai server atau akun sungguhan.</p>
+  </section>
+  <section id="lobby" class="hidden">
+    <div class="top"><div><div class="brand">SONALQUEST</div><h1 class="hero">Lobby pelajaran</h1><p class="muted">Halo, <b id="hello"></b>! Pilih pelajaran untuk mulai.</p></div><button class="secondary" id="logout">Keluar akun</button></div>
+    <div class="note">📚 Setiap pelajaran memiliki 45 soal. Kamu wajib memilih jawaban sebelum bisa lanjut. Setelah selesai, pilih <b>Lihat skor</b> untuk koreksi dan ranking.</div>
+    <div class="grid" id="subjects" style="margin-top:18px"></div>
+    <section class="panel rank"><h2>🏆 Ranking tiap pelajaran</h2><p class="muted">Ranking lokal berdasarkan skor terbaik yang tersimpan di browser ini.</p><div id="allRanks"></div></section>
+  </section>
+  <section id="quiz" class="hidden">
+    <div class="top"><button class="secondary" id="backLobby">← Lobby</button><div class="tag" id="quizSubject"></div></div>
+    <div class="panel"><div class="top"><span id="questionCount" class="muted"></span><span id="answeredCount" class="tag"></span></div><div class="progress"><span id="bar"></span></div>
+    <h2 id="questionText" style="font-size:clamp(22px,4vw,30px)"></h2><div id="choices" class="choices"></div><p id="feedback" class="muted"></p><div class="top"><button id="prev" class="secondary">← Sebelumnya</button><button id="next" disabled>Berikutnya →</button></div><button id="finish" class="hidden" style="width:100%;margin-top:12px">Lihat skor</button></div>
+  </section>
+  <section id="results" class="hidden">
+    <div class="top"><button class="secondary" id="resultsLobby">← Lobby</button><div class="tag">HASIL & KOREKSI</div></div>
+    <div class="panel"><div class="tag" id="resultSubject"></div><h1 class="hero">Hasil latihan</h1><div class="score" id="scoreText">0/45</div><p id="scorePercent" class="muted"></p><p id="resultMessage"></p><div class="note">Koreksi otomatis menunjukkan jawaban yang benar dan penjelasan singkat untuk membantu belajar. Ini versi demo, bukan AI online yang terhubung ke server.</div><div id="review"></div></div>
+    <div class="panel rank"><h2>🏆 Ranking pelajaran ini</h2><div id="subjectRank"></div></div>
+  </section>
+  <div class="footer">SONALQUEST • Demo front-end — gunakan dengan bijak</div>
+</div>
+<div id="leaveModal" class="modal hidden" role="dialog" aria-modal="true">
+ <div class="modalbox"><div class="brand">PERINGATAN</div><div class="alarmword">PILIH KELUAR<br>ATAU LANJUT?</div><p>Peringatan! Pilih apakah kamu ingin keluar atau lanjut belajar. Jika memilih <b>Keluar</b>, kamu tidak bisa login lagi selama <b>24 jam</b> di browser ini.</p><div class="actions"><button id="stay">Lanjut belajar</button><button id="exit" class="danger">Keluar • blokir 24 jam</button></div><p class="small muted">Suara alarm hanya dapat berbunyi setelah browser mengizinkan audio. Browser tertentu juga tidak memberi tahu halaman saat aplikasi ditutup paksa.</p></div>
+</div>
+<script>
+const subjects=['Bahasa Indonesia','IPA','IPS','Matematika','PKN'];
+const icons={'Bahasa Indonesia':'📘','IPA':'🧪','IPS':'🌍','Matematika':'➗','PKN':'🏛️'};
+const banks={
+'Bahasa Indonesia':[
+['Gagasan utama paragraf biasanya berisi…',['Ide pokok pembahasan','Contoh tambahan','Kalimat penutup saja','Daftar pustaka'],0,'Gagasan utama adalah inti pembahasan paragraf.'],
+['Kalimat efektif adalah kalimat yang…',['Bertele-tele','Jelas, hemat, dan tepat','Selalu panjang','Memakai banyak kata asing'],1,'Kalimat efektif menyampaikan maksud dengan jelas dan tidak boros kata.'],
+['Sinonim kata “cermat” adalah…',['Ceroboh','Teliti','Lambat','Bimbang'],1,'Cermat berarti teliti atau hati-hati.'],
+['Antonim kata “optimistis” adalah…',['Yakin','Berharap','Pesimistis','Semangat'],2,'Pesimistis merupakan lawan makna optimistis.'],
+['Teks yang berisi langkah melakukan sesuatu disebut…',['Eksplanasi','Prosedur','Deskripsi','Anekdot'],1,'Teks prosedur menjelaskan tahapan melakukan sesuatu.'],
+['Kalimat langsung biasanya menggunakan…',['Tanda kurung','Tanda petik','Tanda hubung saja','Garis miring'],1,'Ucapan langsung ditandai tanda petik.'],
+['Tujuan teks persuasi adalah…',['Mengajak atau memengaruhi','Menghibur dengan teka-teki','Mencatat data mentah','Mengurutkan tokoh'],0,'Persuasi berusaha memengaruhi pembaca agar menerima ajakan.'],
+['Kata baku yang tepat adalah…',['Resiko','Risiko','Resikko','Resikho'],1,'Bentuk baku menurut kaidah bahasa Indonesia adalah risiko.'],
+['Majas yang membandingkan secara langsung tanpa kata pembanding disebut…',['Metafora','Hiperbola','Ironi','Litotes'],0,'Metafora menyamakan dua hal secara langsung.'],
+['Unsur cerita yang menunjukkan tempat dan waktu adalah…',['Tema','Alur','Latar','Amanat'],2,'Latar mencakup tempat, waktu, dan suasana.']
+],
+'IPA':[
+['Unit struktural dan fungsional terkecil makhluk hidup adalah…',['Jaringan','Organ','Sel','Sistem organ'],2,'Sel adalah unit dasar kehidupan.'],
+['Perubahan wujud cair menjadi gas disebut…',['Membeku','Menguap','Mengembun','Menyublim'],1,'Menguap adalah perubahan cair menjadi gas.'],
+['Planet yang dikenal sebagai Planet Merah ialah…',['Venus','Mars','Jupiter','Merkurius'],1,'Mars tampak kemerahan karena mineral besi di permukaannya.'],
+['Gas yang dibutuhkan tumbuhan untuk fotosintesis adalah…',['Oksigen','Karbon dioksida','Helium','Nitrogen murni'],1,'Tumbuhan menggunakan karbon dioksida dan air dengan bantuan cahaya.'],
+['Satuan gaya dalam SI adalah…',['Joule','Watt','Newton','Pascal'],2,'Gaya diukur dalam newton.'],
+['Organ yang memompa darah adalah…',['Paru-paru','Jantung','Ginjal','Lambung'],1,'Jantung memompa darah ke seluruh tubuh.'],
+['Rantai makanan selalu diawali oleh…',['Konsumen puncak','Pengurai','Produsen','Karnivor'],2,'Produsen seperti tumbuhan membuat makanan sendiri.'],
+['Benda yang menghantarkan listrik dengan baik disebut…',['Isolator','Konduktor','Resistor saja','Transparan'],1,'Konduktor memudahkan arus listrik mengalir.'],
+['Peristiwa siang dan malam terutama disebabkan oleh…',['Revolusi Bulan','Rotasi Bumi','Revolusi Matahari','Gerhana'],1,'Rotasi Bumi membuat wilayah bergantian menghadap Matahari.'],
+['Campuran yang komponennya tercampur merata disebut…',['Heterogen','Homogen','Suspensi kasar','Endapan'],1,'Campuran homogen memiliki komposisi yang seragam.']
+],
+'IPS':[
+['Kegiatan menghasilkan barang atau jasa disebut…',['Konsumsi','Produksi','Distribusi','Impor'],1,'Produksi menghasilkan barang atau jasa.'],
+['Kegiatan menyalurkan barang dari produsen ke konsumen adalah…',['Distribusi','Konsumsi','Produksi','Investasi'],0,'Distribusi menyalurkan barang/jasa.'],
+['Garis khayal yang membagi Bumi menjadi utara dan selatan adalah…',['Meridian utama','Khatulistiwa','Garis tanggal','Garis balik utara'],1,'Khatulistiwa berada pada lintang 0°.'],
+['ASEAN didirikan pada tahun…',['1945','1967','1989','2001'],1,'ASEAN berdiri pada 8 Agustus 1967.'],
+['Salah satu faktor interaksi sosial adalah…',['Kontak dan komunikasi','Cuaca saja','Ketinggian gunung','Jenis batuan'],0,'Interaksi sosial memerlukan kontak dan komunikasi.'],
+['Peta berskala besar biasanya menunjukkan wilayah yang…',['Lebih luas dan rinci rendah','Lebih sempit dengan detail tinggi','Seluruh dunia','Tidak punya simbol'],1,'Skala besar menampilkan area lebih kecil secara lebih rinci.'],
+['Kelangkaan terjadi karena…',['Kebutuhan terbatas, sumber daya tak terbatas','Sumber daya terbatas sementara kebutuhan beragam','Semua barang gratis','Tidak ada pilihan'],1,'Kelangkaan memaksa manusia menentukan prioritas.'],
+['Perpindahan penduduk dari desa ke kota disebut…',['Urbanisasi','Transmigrasi','Imigrasi','Emigrasi'],0,'Urbanisasi adalah perpindahan menuju wilayah perkotaan.'],
+['Contoh sumber sejarah tertulis adalah…',['Prasasti','Fosil saja','Alat batu','Lapisan tanah'],0,'Prasasti memuat tulisan sebagai sumber sejarah.'],
+['Angin muson berpengaruh terhadap Indonesia terutama dalam…',['Pergantian musim','Gerhana Bulan','Gempa tektonik','Rotasi Bumi'],0,'Angin muson membantu memengaruhi musim hujan dan kemarau.']
+],
+'Matematika':[
+['Jika 3x + 7 = 25, nilai x adalah…',['4','5','6','7'],2,'3x = 18, sehingga x = 6.'],
+['Hasil 15% dari 240 adalah…',['24','30','36','42'],2,'15/100 × 240 = 36.'],
+['Luas segitiga dengan alas 12 cm dan tinggi 9 cm adalah…',['54 cm²','108 cm²','42 cm²','21 cm²'],0,'Luas = ½ × alas × tinggi = 54 cm².'],
+['FPB dari 36 dan 48 adalah…',['6','8','12','16'],2,'Faktor persekutuan terbesar keduanya adalah 12.'],
+['Hasil 2³ × 2⁴ adalah…',['2⁷','4⁷','2¹²','4¹²'],0,'Untuk basis sama, pangkat dijumlahkan: 2^(3+4).'],
+['Rata-rata dari 6, 8, 10, dan 16 adalah…',['8','9','10','11'],2,'Jumlah 40 dibagi 4 adalah 10.'],
+['Keliling persegi dengan sisi 13 cm adalah…',['26 cm','39 cm','52 cm','169 cm'],2,'Keliling persegi = 4 × sisi = 52 cm.'],
+['Jika y/5 = 7, maka y = …',['12','25','30','35'],3,'Kalikan kedua sisi dengan 5: y = 35.'],
+['Bilangan prima berikut adalah…',['21','27','29','39'],2,'29 hanya memiliki faktor positif 1 dan 29.'],
+['Sebuah barang Rp80.000 mendapat diskon 25%. Harga setelah diskon…',['Rp20.000','Rp55.000','Rp60.000','Rp65.000'],2,'Diskon Rp20.000, jadi harga akhirnya Rp60.000.']
+],
+'PKN':[
+['Dasar negara Indonesia adalah…',['UUD 1945','Pancasila','Bhinneka Tunggal Ika','Proklamasi'],1,'Pancasila merupakan dasar negara Indonesia.'],
+['Sila ketiga Pancasila berbunyi…',['Keadilan sosial bagi seluruh rakyat Indonesia','Persatuan Indonesia','Ketuhanan Yang Maha Esa','Kemanusiaan yang adil dan beradab'],1,'Sila ketiga menekankan persatuan Indonesia.'],
+['UUD Negara Republik Indonesia disahkan pada…',['17 Agustus 1945','18 Agustus 1945','1 Juni 1945','28 Oktober 1928'],1,'UUD 1945 disahkan oleh PPKI pada 18 Agustus 1945.'],
+['Semboyan Bhinneka Tunggal Ika berarti…',['Bersatu kita teguh','Berbeda-beda tetapi tetap satu','Musyawarah untuk mufakat','Keadilan untuk semua'],1,'Semboyan ini menegaskan persatuan dalam keberagaman.'],
+['Contoh pelaksanaan musyawarah adalah…',['Memaksakan pendapat','Mendengarkan pendapat dan mencari mufakat','Meninggalkan rapat','Memilih tanpa berdiskusi'],1,'Musyawarah memberi ruang bagi pendapat untuk mencapai kesepakatan.'],
+['Hak dan kewajiban sebaiknya dijalankan secara…',['Seimbang dan bertanggung jawab','Sepihak','Bergantung teman','Tanpa aturan'],0,'Warga perlu menghormati hak dan menjalankan kewajiban.'],
+['Lembaga yang memegang kekuasaan legislatif di tingkat pusat antara lain…',['DPR','Polri','Bank Indonesia','Kejaksaan'],0,'DPR menjalankan fungsi legislasi bersama lembaga terkait sesuai konstitusi.'],
+['Contoh sikap toleransi adalah…',['Menghina keyakinan lain','Menghormati ibadah orang lain','Memaksa semua sama','Menolak berdialog'],1,'Toleransi menghormati perbedaan tanpa paksaan.'],
+['Pemilu di Indonesia dilaksanakan berdasarkan asas…',['Luber dan jurdil','Cepat dan rahasia saja','Bebas tanpa aturan','Tertutup dan terbatas'],0,'Asas pemilu dikenal sebagai langsung, umum, bebas, rahasia, jujur, dan adil.'],
+['Contoh menaati aturan di sekolah adalah…',['Datang sesuka hati','Menjaga fasilitas dan mematuhi tata tertib','Mengganggu pelajaran','Mengabaikan tugas kelompok'],1,'Mematuhi tata tertib membantu menciptakan lingkungan belajar tertib.']
+]};
+const state={user:'',subject:'',questions:[],idx:0,answers:{},results:{}};
+const $=id=>document.getElementById(id);
+function show(id){['login','lobby','quiz','results'].forEach(x=>$(x).classList.toggle('hidden',x!==id));requestAnimationFrame(()=>window.scrollTo({top:0,left:0,behavior:'instant'}))}
+function seedBank(subject){
+ let base=banks[subject].map(q=>q.slice());
+ const generic={
+ 'Bahasa Indonesia':[
+ ['Kalimat utama adalah kalimat yang…',['Memuat inti paragraf','Selalu paling pendek','Selalu berupa pertanyaan','Tidak berhubungan dengan isi'],0,'Kalimat utama memuat gagasan pokok paragraf.'],
+ ['Informasi tersurat berarti informasi yang…',['Dinyatakan langsung dalam teks','Harus ditebak tanpa petunjuk','Tidak ada di teks','Hanya berupa gambar'],0,'Informasi tersurat tertulis secara langsung.'],
+ ['Ringkasan yang baik harus…',['Memuat semua detail kecil','Memuat pokok isi secara singkat','Menambah opini baru','Mengubah inti cerita'],1,'Ringkasan mengambil inti dengan singkat dan akurat.']],
+ 'IPA':[
+ ['Alat untuk mengukur suhu adalah…',['Barometer','Termometer','Amperemeter','Dinamometer'],1,'Termometer digunakan untuk mengukur suhu.'],
+ ['Sumber energi utama bagi sebagian besar ekosistem adalah…',['Matahari','Batu bara','Bulan','Angin malam'],0,'Energi matahari dimanfaatkan produsen melalui fotosintesis.'],
+ ['Perubahan energi pada lampu menyala adalah…',['Listrik menjadi cahaya dan panas','Panas menjadi massa','Bunyi menjadi listrik','Cahaya menjadi makanan'],0,'Lampu mengubah energi listrik menjadi cahaya dan panas.']],
+ 'IPS':[
+ ['Kebutuhan primer adalah kebutuhan…',['Pokok untuk hidup','Mewah saja','Hiburan saja','Yang tidak terbatas harganya'],0,'Kebutuhan primer mencakup hal pokok seperti pangan, sandang, papan.'],
+ ['Kegiatan membeli dan menggunakan barang disebut…',['Produksi','Konsumsi','Distribusi','Ekspor'],1,'Konsumsi menggunakan barang atau jasa untuk memenuhi kebutuhan.'],
+ ['Legenda pada peta berfungsi untuk…',['Menjelaskan simbol','Mengukur suhu','Menentukan umur peta','Mengubah skala'],0,'Legenda menjelaskan arti simbol-simbol peta.']],
+ 'Matematika':[
+ ['Hasil 7 × 8 − 12 adalah…',['44','56','68','40'],0,'Kerjakan perkalian dahulu: 56 − 12 = 44.'],
+ ['Pecahan 3/4 dalam persen adalah…',['25%','50%','75%','80%'],2,'3 ÷ 4 × 100% = 75%.'],
+ ['Jika keliling persegi panjang 30 cm dan panjang 9 cm, lebarnya…',['5 cm','6 cm','7 cm','12 cm'],1,'2(p + l)=30, sehingga 9 + l=15 dan l=6.']],
+ 'PKN':[
+ ['Ketika berbeda pendapat, sikap yang tepat adalah…',['Menghina','Mendengarkan dan menghargai','Memutus pertemanan','Memaksa orang setuju'],1,'Perbedaan pendapat perlu disikapi dengan hormat.'],
+ ['Contoh tanggung jawab sebagai pelajar adalah…',['Mengerjakan tugas dengan jujur','Menyalin jawaban teman','Merusak buku','Mengabaikan aturan'],0,'Tanggung jawab mencakup menyelesaikan tugas secara jujur.'],
+ ['Gotong royong mencerminkan nilai…',['Kerja sama','Persaingan tidak sehat','Egoisme','Ketidakpedulian'],0,'Gotong royong berarti bekerja bersama untuk kepentingan bersama.']]
+ };
+ const g=generic[subject];let i=0;
+ while(base.length<45){let q=g[i%g.length].slice(); if(base.length%2===1){q[0]=q[0].replace('adalah','yang tepat adalah');}base.push(q);i++}
+ return base.slice(0,45);
+}
+function scoreFor(s){let r=JSON.parse(localStorage.getItem('rb_scores')||'{}');return r[s]||{}}
+function renderLobby(){ $('hello').textContent=state.user; $('subjects').innerHTML='';subjects.forEach(s=>{let r=scoreFor(s);let card=document.createElement('div');card.className='subject';card.innerHTML=`<div><div class="tag">${icons[s]} • 45 SOAL</div><h3>${s}</h3><p class="muted small">${r.best!==undefined?'Skor terbaik: '+r.best+'/45':'Belum ada hasil'}</p></div><button>Mulai latihan →</button>`;card.querySelector('button').onclick=()=>startQuiz(s);$('subjects').append(card)});renderAllRanks()}
+function renderAllRanks(){let r=JSON.parse(localStorage.getItem('rb_scores')||'{}');$('allRanks').innerHTML=subjects.map(s=>`<p><b>${icons[s]} ${s}</b> — ${r[s]?.best!==undefined?r[s].best+'/45':'Belum ada skor'}</p>`).join('')}
+function startQuiz(s){state.subject=s;state.questions=seedBank(s);state.idx=0;state.answers={};$('quizSubject').textContent=s.toUpperCase();show('quiz');renderQuestion()}
+function renderQuestion(){let q=state.questions[state.idx];$('questionCount').textContent=`SOAL ${state.idx+1} DARI 45`;$('answeredCount').textContent=`Terjawab ${Object.keys(state.answers).length}/45`;$('bar').style.width=((state.idx+1)/45*100)+'%';$('questionText').textContent=q[0];$('choices').innerHTML='';q[1].forEach((c,i)=>{let b=document.createElement('button');b.className='choice'+(state.answers[state.idx]===i?' selected':'');b.innerHTML=`<span class="letter">${'ABCD'[i]}</span><span>${c}</span>`;b.onclick=()=>{state.answers[state.idx]=i;renderQuestion()};$('choices').append(b)});$('feedback').textContent=state.answers[state.idx]===undefined?'Pilih satu jawaban untuk mengaktifkan tombol lanjut.':'Jawaban tersimpan.';$('prev').disabled=state.idx===0;$('next').disabled=state.answers[state.idx]===undefined;$('next').classList.toggle('hidden',state.idx===44);$('finish').classList.toggle('hidden',state.idx!==44);$('finish').disabled=Object.keys(state.answers).length!==45}
+$('next').onclick=()=>{if(state.answers[state.idx]===undefined)return;state.idx++;renderQuestion()};$('prev').onclick=()=>{state.idx--;renderQuestion()};$('finish').onclick=()=>{if(Object.keys(state.answers).length!==45)return;showResults()};
+function showResults(){let qs=state.questions;let correct=qs.reduce((n,q,i)=>n+(state.answers[i]===q[2]?1:0),0);let pct=Math.round(correct/45*100);let all=JSON.parse(localStorage.getItem('rb_scores')||'{}');let prev=all[state.subject]?.best??-1;all[state.subject]={best:Math.max(prev,correct),latest:correct,updated:new Date().toLocaleDateString('id-ID')};localStorage.setItem('rb_scores',JSON.stringify(all));$('resultSubject').textContent=state.subject.toUpperCase();$('scoreText').textContent=`${correct}/45`;$('scorePercent').textContent=`Nilai: ${pct}/100`; $('resultMessage').textContent=correct>=40?'Luar biasa! Tetap periksa pembahasan soal yang keliru.':correct>=30?'Bagus! Baca koreksi dan coba tingkatkan lagi.':'Terus belajar—pahami pembahasan tiap soal lalu coba lagi.';$('review').innerHTML='<h2>Koreksi jawaban</h2>'+qs.map((q,i)=>{let ok=state.answers[i]===q[2];return `<div style="padding:14px 0;border-bottom:1px solid var(--line)"><b>${i+1}. ${q[0]}</b><p style="color:${ok?'#65e0d1':'#ff8792'}">${ok?'✓ Benar':'✗ Belum tepat'} — Jawabanmu: ${'ABCD'[state.answers[i]]}. ${q[1][state.answers[i]]}</p><p><b>Jawaban benar: ${'ABCD'[q[2]]}. ${q[1][q[2]]}</b></p><p class="muted">${q[3]}</p></div>`}).join('');let rows=subjects.map(s=>({s,b:all[s]?.best??-1})).filter(x=>x.b>=0).sort((a,b)=>b.b-a.b);$('subjectRank').innerHTML=rows.length?'<table><tr><th>Peringkat</th><th>Pelajaran</th><th>Skor terbaik</th></tr>'+rows.map((x,i)=>`<tr><td>#${i+1}</td><td>${icons[x.s]} ${x.s}</td><td>${x.b}/45</td></tr>`).join('')+'</table>':'Belum ada skor.';show('results')}
+$('loginForm').onsubmit=e=>{e.preventDefault();let until=Number(localStorage.getItem('rb_lock_until')||0);if(Date.now()<until){alert('Akses masih dikunci. Coba lagi setelah '+new Date(until).toLocaleString('id-ID'));return}state.user=$('username').value.trim();localStorage.setItem('rb_user',state.user);show('lobby');renderLobby()};
+$('logout').onclick=()=>{show('login')};$('backLobby').onclick=()=>{show('lobby');renderLobby()};$('resultsLobby').onclick=()=>{show('lobby');renderLobby()};
+let audioCtx=null,alarmTimer=null;
+function alarm(){try{audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')audioCtx.resume();let o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type='square';o.frequency.value=880;g.gain.value=.08;o.connect(g);g.connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+.28)}catch(e){}}
+function openWarning(){if(!$('leaveModal').classList.contains('hidden'))return;$('leaveModal').classList.remove('hidden');alarm();alarmTimer=setInterval(alarm,850)}
+function closeWarning(){ $('leaveModal').classList.add('hidden');if(alarmTimer)clearInterval(alarmTimer);alarmTimer=null}
+$('stay').onclick=()=>closeWarning();
+$('exit').onclick=()=>{localStorage.setItem('rb_lock_until',String(Date.now()+24*60*60*1000));closeWarning();show('login');alert('Kamu memilih keluar. Kamu tidak bisa login lagi selama 24 jam di browser ini.');};
+document.addEventListener('visibilitychange',()=>{
+ if(document.visibilityState==='hidden'&&localStorage.getItem('rb_user'))openWarning();
+ else if(document.visibilityState==='visible'&&!$('leaveModal').classList.contains('hidden')){alarm()}
+});
+window.addEventListener('beforeunload',e=>{if(localStorage.getItem('rb_user')){e.preventDefault();e.returnValue='Peringatan: tetap di sini atau keluar?'}});
+(function init(){let until=Number(localStorage.getItem('rb_lock_until')||0);if(Date.now()<until){show('login');$('loginForm').classList.add('hidden');$('login').insertAdjacentHTML('beforeend',`<div class="note">Akses dikunci sampai ${new Date(until).toLocaleString('id-ID')}.</div>`);return}let u=localStorage.getItem('rb_user');if(u){state.user=u;show('lobby');renderLobby()}})();
+</script></body></html>
